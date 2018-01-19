@@ -1,0 +1,3 @@
+D:/VTK/example/VirtualOperation/bin/CMakeFiles/VirtualOperation.dir
+D:/VTK/example/VirtualOperation/bin/CMakeFiles/ALL_BUILD.dir
+D:/VTK/example/VirtualOperation/bin/CMakeFiles/ZERO_CHECK.dir
