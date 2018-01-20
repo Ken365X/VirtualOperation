@@ -32,131 +32,72 @@ void PointerPickerInteractorStyle::OnRightButtonDown()
 		this->Interactor->GetEventPosition()[1],
 		0,  // always zero.
 		this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-	double picked[3];//拾取的点的坐标
+	double picked[3];
 	this->Interactor->GetPicker()->GetPickPosition(picked);
-	double * cameraPos = this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera()->GetPosition();//相机的坐标
-
+	std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;//vtk选点
+	double * cameraPos = this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera()->GetPosition();//相机坐标
 	double point1[3], point2[3];
 	int sourcedims[3];//数据集规模
+	double *positionX = new double[10000];
+	double *positionY = new double[10000];
+	double *positionZ = new double[10000];
+	double vectors_1[3];//相机到数据集中心的向量
+	double vectors_2[3];//vtk选点到遍历点的向量
+	double *pos;
+
 	for (int i = 0; i < 3; i++)
 	{
 		sourcedims[i] = (manager->getDimensions())[i];
-		point1[i] = sourcedims[i] / 2;//数据集中心坐标
+		point1[i] = sourcedims[i] / 2;
 		point2[i] = cameraPos[i];
+		vectors_1[i] = point2[i] - point1[i];
 	}
-
-	int zerojudge[3] = { 0,0,0 };//难以描述 判断三点一线用到的
-	int vectorjudge;
-	int verticalVectorCount = 0;
-	double  precision = 0.08;//设置判断三点一线的精度
-	double *positionX = new double[10000];//选中有条件点的坐标
-	double *positionY = new double[10000];
-	double *positionZ = new double[10000];
-
-
-	int validVectorCount = -1;
-	double vectors_1[3];//比中心到相机和遍历点与拾取点的向量是否平行
-	double vectors_2[3];
-
-	for (int i = 0; i < 3; i++)
-	{
-		vectors_1[i] = point1[i] - point2[i];
-		if (vectors_1[i] <= 1 && vectors_1[i] >= -1)
-		{
-			zerojudge[i] = 1;
-			verticalVectorCount += 1;
-		}
-	}
-	double ratio[3];
-	double *pos;
-	for (int i = 0; i < sourcedims[0]; i++)//机关枪 = =  里面别管了
+	int  validVectorCount = -1;
+	for (int i = 0; i < sourcedims[0]; i++)//优化了一下机关枪，提了一个函数到common，基本解决玄学选点
 	{
 		for (int j = 0; j < sourcedims[1]; j++)
 		{
 			for (int k = 0; k < sourcedims[2]; k++)
 			{
-				vectorjudge = 1;
-				manager->GetPosition(i, j, k, pos);
 				if (*(manager->GetScalarPointer(i, j, k)) >= 90)
 				{
+					manager->GetPosition(i, j, k, pos);
 					for (int l = 0; l < 3; l++)
 					{
 						vectors_2[l] = pos[l] - picked[l];
-						if (zerojudge[l] == 1)
-						{
-							if (vectors_2[l] >= 1 || vectors_2[l] <= -1)
-							{
-								vectorjudge = 0;
-								break;
-							}
-						}
-						else
-						{
-							ratio[l] = vectors_1[l] / vectors_2[l];
-						}
 					}
-					if (!vectorjudge)
-					{
-						delete[] pos;
-						continue;
-					}
-					if (verticalVectorCount == 0)
-					{
-						for (int l = 0; l < 3; l++)
-						{
-							if (ratio[l] - ratio[(l + 1) % 3] <= -1 * precision || ratio[l] - ratio[(l + 1) % 3] >= precision)
-							{
-								vectorjudge = 0;
-								break;
-							}
-						}
-					}
-					else
-					{
-						if (validVectorCount == 1)
-						{
-							for (int l = 0; l < 3; l++)
-							{
-								if (zerojudge[l] == 1)
-								{
-									if (ratio[(l + 1) % 3] - ratio[(l + 2) % 3] <= -1 * precision || ratio[(l + 1) % 3] - ratio[(l + 2) % 3] >= precision)
-									{
-										vectorjudge = 0;
-										break;
-									}
-								}
-							}
-						}
-					}
-					if (vectorjudge)
+					if (judgeisParallel(vectors_1, vectors_2))
 					{
 						validVectorCount++;
 						positionX[validVectorCount] = pos[0];
 						positionY[validVectorCount] = pos[1];
 						positionZ[validVectorCount] = pos[2];
 					}
+
+					delete[] pos;
 				}
-				delete[] pos;
 			}
 		}
 	}
-
 	double  dis = 9999999999;
 	double  point[3];
 	double  temp;
 	int choosecount = -1;
-	for (int i = 0; i <= validVectorCount; i++)//找出与相机最近的点
+	for (int i = 0; i <= validVectorCount; i++)
 	{
+
 		point[0] = positionX[i];
 		point[1] = positionY[i];
 		point[2] = positionZ[i];
 		temp = DistanceSquare(point2, point);
+		//cout << " temp: " << temp << endl;
 		if (temp < dis)
 		{
 			dis = temp;
 			choosecount = i;
 		}
 	}
+
 	cout << "over:" << endl;
 	if (choosecount != -1)
 	{
@@ -176,13 +117,15 @@ void PointerPickerInteractorStyle::OnRightButtonDown()
 		actor->SetPosition(point);
 		actor->SetScale(10);
 		actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-		this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-		cout << "add ball" << endl;//在算出的点加一个球
+		this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);//选中点处加红球
+		cout << "add ball" << endl;
 	}
 
 	delete[] positionX;
 	delete[] positionY;
 	delete[] positionZ;
+
+
 	manager->Update();
 	vtkInteractorStyleTrackballCamera::OnRightButtonDown();
 }
