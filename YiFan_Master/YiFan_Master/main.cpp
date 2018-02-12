@@ -98,7 +98,7 @@ int main()
 	manager.Update();
 	vtkSmartPointer<vtkRenderer>  render = vtkSmartPointer<vtkRenderer>::New();
 	render->AddVolume(volume);
-	render->SetBackground(1, 1, 1);
+	render->SetBackground(0, 0, 0);
 	vtkSmartPointer<vtkRenderWindow>  window = vtkSmartPointer<vtkRenderWindow>::New();
 	window->AddRenderer(render);
 	window->Render();
@@ -108,8 +108,37 @@ int main()
 	// 傅川溥修改，更换了一个交互方式
 	vtkSmartPointer<vtkRenderWindowInteractor> interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	window->SetInteractor(interactor);
-	//vtkSmartPointer<PointerPickerInteractorStyle> style = vtkSmartPointer<PointerPickerInteractorStyle>::New();
-	//style->SetDefaultRenderer(render);
+	
+	/////////////////////////////////////////////////////////////
+	//vtkImageReslice *imageReslice = vtkImageReslice::New();
+	//imageReslice->SetInputConnection(Luminance->GetOutputPort());
+	//// imageDataFirstRotationVolumeReslice->SetResliceAxes( sagittal_transform); 
+	//// imageReslice->SetResliceTransform(transform);
+	//imageReslice->WrapOff();
+	//imageReslice->MirrorOff();
+	//imageReslice->SetInterpolationModeToLinear();
+	//imageReslice->InterpolateOn();
+	//imageReslice->OptimizationOn();
+	//imageReslice->ReleaseDataFlagOn();
+	//imageReslice->SetBackgroundColor(1, 1, 1, 0);
+	//imageReslice->SetOutputOriginToDefault();
+	//imageReslice->SetOutputSpacing(5, 5, 5);
+	//imageReslice->SetOutputOrigin(5, 5, 5);
+	//imageReslice->SetOutputExtent(0, 240 - 1, 0, 240 - 1, 0, 200 - 1);
+	//imageReslice->Update();
+
+	//vtkImageViewer2 *imageView = vtkImageViewer2::New();
+	////imageView->SetupInteractor(interactor);
+	//imageView->SetInputConnection(reader->GetOutputPort());
+	//imageView->SetSlice(5);
+	//imageView->SetColorWindow(2000);
+	//imageView->SetSize(500,500);
+	//imageView->SetColorLevel(1000);
+	//imageView->Render();
+
+	// render->AddActor2D((vtkProp *)imageView->GetActor2D());
+	/////////////////////////////////////////////////////////////
+
 	vtkSmartPointer<VolumePickerInteractorStyle> volumestyle = vtkSmartPointer<VolumePickerInteractorStyle>::New();
 	volumestyle->SetDefaultRenderer(render);
 	//interactor->SetInteractorStyle(style);

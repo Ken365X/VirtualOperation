@@ -43,3 +43,17 @@
 #include<vtkStringArray.h>
 #include<vtkAutoInit.h>
 #include<vtkRayCastImageDisplayHelper.h>
+#include<vtkButtonWidget.h>
+#include<vtkWidgetRepresentation.h>
+#include<vtkBoxWidget.h>
+#include<vtkImageReslice.h>
+#include<vtkImageViewer2.h>
+#include<vtkImplicitPlaneRepresentation.h>
+#include<vtkImplicitPlaneWidget.h>
+#include<vtkImplicitPlaneWidget2.h>
+#include<vtkPlanes.h>
+#include<vtkPlane.h>
+#include<vtkSliderRepresentation3D.h>
+#include<vtkSliderRepresentation2D.h>
+#include<vtkSliderRepresentation.h>
+#include<vtkSliderWidget.h>
